@@ -37,16 +37,7 @@ import keras
 from keras.models import Sequential
 from keras.layers import Dense
 
-#initializing ANN
-classifier = Sequential()
-#adding input layer & the first hidden layer
-classifier.add(Dense(units=6, kernel_initializer='uniform', activation='relu', input_dim=11 ))
-#adding 2nd layer
-classifier.add(Dense(units=6, kernel_initializer='uniform', activation='relu'))
-#adding output layer
-classifier.add(Dense(units=1, kernel_initializer='uniform', activation='sigmoid'))
-#compiling ANN
-classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
 
 #Fitting ANN to the training set
 classifier.fit(X_train, y_train, batch_size=10, epochs=25)
@@ -70,3 +61,25 @@ X_hw = sc.fit_transform(X_hw)
 y_pred_hw = classifier.predict(X_hw, batch_size=10)
 y_pred_hw = (y_pred_hw > 0.5)
 
+# Evaluating the ANN (k-Fold CV)
+import keras
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import cross_val_score
+
+
+def build_classifier():
+    #initializing ANN
+    classifier = Sequential()
+    classifier.add(Dense(units=6, kernel_initializer='uniform', activation='relu', input_dim=11 ))
+    classifier.add(Dense(units=6, kernel_initializer='uniform', activation='relu'))
+    classifier.add(Dense(units=1, kernel_initializer='uniform', activation='sigmoid'))
+    classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    return classifier
+
+classifier = KerasClassifier(build_fn=build_classifier, batch_size=10, epochs=20)
+accuracies = cross_val_score(estimator=classifier, X=X_train, y=y_train, cv=10, n_jobs=-1)
+
+mean = accuracies.mean()
+variance = accuracies.std()
